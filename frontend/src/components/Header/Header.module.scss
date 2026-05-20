@@ -1,0 +1,17 @@
+.header {
+  grid-area: h;
+  display: flex;
+  justify-content: space-between;
+  background-color: #4a2c6e;
+  padding: 1rem 2rem;
+
+  & > p {
+    color: white;
+    font-size: 2rem;
+    font-weight: bolder;
+
+    span {
+      color: #f9a8d4;
+    }
+  }
+}

@@ -1,0 +1,25 @@
+.user_card {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+
+  .user_icon {
+    padding: 0.25rem;
+    background-color: #f9a8d4;
+    border-radius: 50%;
+  }
+
+  .user_info {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+
+    :first-child {
+      color: white;
+    }
+
+    :nth-child(2) {
+      color: grey;
+    }
+  }
+}
