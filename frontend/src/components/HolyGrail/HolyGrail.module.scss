@@ -12,8 +12,9 @@
   grid-template-rows: min-content 1fr;
 
   .main {
+    overflow: auto;
     grid-area: m;
-    background-color: #f3eefb;
+    background-color: var(--color-light);
     padding: 2.5rem;
   }
 }

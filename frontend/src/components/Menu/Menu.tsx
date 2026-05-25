@@ -14,7 +14,7 @@ export default function Menu() {
   return (
     <nav className={styles.menu}>
       <ul>
-        <h3>Menu Principal</h3>
+        <p className="pseudo-title">Menu Principal</p>
 
         <li>
           <NavLink

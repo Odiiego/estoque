@@ -2,7 +2,7 @@
   grid-area: h;
   display: flex;
   justify-content: space-between;
-  background-color: #4a2c6e;
+  background-color: var(--color-dark);
   padding: 1rem 2rem;
 
   & > p {

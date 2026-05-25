@@ -11,15 +11,6 @@
     gap: 0.3rem;
     width: 11rem;
 
-    h3 {
-      text-transform: uppercase;
-      color: #4a2c6e;
-      font-size: 1rem;
-      font-weight: 600;
-      margin: 0.5rem 0;
-      font-size: 1rem;
-    }
-
     li {
       display: flex;
       list-style: none;
@@ -27,23 +18,22 @@
       a {
         display: flex;
         gap: 1rem;
-        color: #4a2c6e;
+        color: var(--color-dark);
         text-decoration: none;
         width: 10rem;
-        font-size: 1.2rem;
         align-items: center;
         padding: 0.5rem 0.75rem;
         border-radius: 0.75rem;
 
         &:hover {
-          background-color: #f3eefb;
+          background-color: var(--color-light);
         }
       }
     }
 
     .active {
       font-weight: bold;
-      background-color: #f3eefb;
+      background-color: var(--color-light);
       border-radius: 0.75rem;
       width: 10rem;
     }
