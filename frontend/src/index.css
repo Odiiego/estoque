@@ -9,6 +9,9 @@
 
   --color-table-border: #e8dff5;
 
+  --color-input-border: #d4c1eb;
+  --color-placeholder: #a58cc8;
+
   --color-btn-primary: #502d7e;
   --color-btn-primary-light: #7137d0;
 
@@ -21,6 +24,10 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+#root {
+  position: relative;
 }
 
 body {

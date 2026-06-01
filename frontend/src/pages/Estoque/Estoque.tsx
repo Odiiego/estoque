@@ -1,5 +1,8 @@
-import { Package, Plus } from 'lucide-react';
+/* eslint-disable react-hooks/refs */
+import { Package, Plus, X } from 'lucide-react';
 import styles from './Estoque.module.scss';
+import { useRef } from 'react';
+import { useForm } from 'react-hook-form';
 
 const produtos = [
   // Perfumes 100ml
@@ -519,7 +522,37 @@ const produtos = [
   },
 ];
 
+type AjusteEstoqueForm = {
+  produto: string;
+  quantidade: number;
+  data: string;
+  origem: string;
+  justificativa: string;
+};
+
 export default function Estoque() {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AjusteEstoqueForm>({
+    defaultValues: {
+      data: new Date().toISOString().split('T')[0],
+    },
+  });
+
+  const onSubmit = (data: AjusteEstoqueForm) => {
+    console.log(data);
+
+    // Chamada da API aqui
+
+    reset();
+    dialogRef.current?.close();
+  };
+
   return (
     <>
       <section className={styles.header}>
@@ -527,7 +560,7 @@ export default function Estoque() {
           <h1>Operações de Estoque</h1>
           <p>Gerencie ajustes de estoque</p>
         </div>
-        <button>
+        <button onClick={() => dialogRef.current?.showModal()}>
           <Plus size={18} />
           Ajuste
         </button>
@@ -587,6 +620,110 @@ export default function Estoque() {
           </tbody>
         </table>
       </section>
+      <dialog ref={dialogRef} className={styles.modal}>
+        <div className={styles.modal_header}>
+          <h2>Ajuste de Estoque</h2>
+          <X
+            size={20}
+            className={styles.btn_close}
+            onClick={() => dialogRef.current?.close()}
+          />
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className={styles.modal_form}>
+          <label>
+            Produto
+            <select
+              {...register('produto', {
+                required: 'Selecione um produto',
+              })}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Selecione um produto...
+              </option>
+
+              {produtos.map((produto) => (
+                <option key={produto.id} value={produto.id}>
+                  {produto.codigo} - {produto.nome} (Estoque:{' '}
+                  {produto.estoqueAtual} un)
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className={styles.horizontal}>
+            <label>
+              Quantidade
+              <input
+                type="number"
+                placeholder="Ex: -100, 20..."
+                {...register('quantidade', {
+                  required: 'Informe a quantidade',
+                  valueAsNumber: true,
+                })}
+              />
+              <span>
+                Use valores positivos para adicionar ou negativos para remover
+              </span>
+              {errors.quantidade && <span>{errors.quantidade.message}</span>}
+            </label>
+
+            <label>
+              Data
+              <input
+                type="date"
+                {...register('data', {
+                  required: 'Informe a data',
+                })}
+              />
+              {errors.data && <span>{errors.data.message}</span>}
+            </label>
+          </div>
+
+          <label>
+            Origem
+            <input
+              type="text"
+              placeholder="Ex: Compra, Transferência..."
+              {...register('origem', {
+                required: 'Informe a origem',
+              })}
+            />
+            {errors.origem && <span>{errors.origem.message}</span>}
+          </label>
+
+          <label>
+            Justificativa
+            <textarea
+              rows={3}
+              placeholder="Descreva o motivo do ajuste"
+              {...register('justificativa', {
+                required: 'Informe a justificativa',
+                minLength: {
+                  value: 10,
+                  message: 'A justificativa deve ter pelo menos 10 caracteres',
+                },
+              })}
+            />
+            {errors.justificativa && (
+              <span>{errors.justificativa.message}</span>
+            )}
+          </label>
+
+          <div className={styles.modal_footer}>
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+                dialogRef.current?.close();
+              }}
+            >
+              Cancelar
+            </button>
+
+            <button type="submit">Registrar Ajuste</button>
+          </div>
+        </form>
+      </dialog>
     </>
   );
 }
