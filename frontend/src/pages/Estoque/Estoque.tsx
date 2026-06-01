@@ -4,6 +4,78 @@ import styles from './Estoque.module.scss';
 import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 
+const fornecedores = [
+  {
+    id: 'FM001',
+    nome: 'FORNMASC LTDA',
+    cnpj: '12.345.678/0001-90',
+    email: 'contato@fornmasc.com.br',
+    telefone: '(11) 3456-7890',
+    endereco: 'Rua dos Perfumes, 100 - São Paulo/SP',
+  },
+  {
+    id: 'FF001',
+    nome: 'FORNFEM LTDA',
+    cnpj: '98.765.432/0001-10',
+    email: 'vendas@fornfem.com.br',
+    telefone: '(21) 2345-6789',
+    endereco: 'Av. das Fragrâncias, 200 - Rio de Janeiro/RJ',
+  },
+];
+
+const movimentacoes = [
+  {
+    id: '1',
+    produtoId: '100',
+    tipo: 'entrada',
+    quantidade: 500,
+    data: '2026-04-10',
+    hora: '09:30',
+    usuario: 'admin',
+    origem: 'Compra FORNMASC',
+  },
+  {
+    id: '2',
+    produtoId: '105',
+    tipo: 'entrada',
+    quantidade: 500,
+    data: '2026-04-10',
+    hora: '09:45',
+    usuario: 'admin',
+    origem: 'Compra FORNFEM',
+  },
+  {
+    id: '3',
+    produtoId: '200',
+    tipo: 'saida',
+    quantidade: 150,
+    data: '2026-04-20',
+    hora: '14:20',
+    usuario: 'admin',
+    origem: 'Pedido Farmácia FARCURA',
+  },
+  {
+    id: '4',
+    produtoId: '115',
+    tipo: 'saida',
+    quantidade: 1000,
+    data: '2026-04-22',
+    hora: '11:15',
+    usuario: 'admin',
+    origem: 'Pedido Perfumaria PERCURA',
+  },
+  {
+    id: '5',
+    produtoId: '140',
+    tipo: 'saida',
+    quantidade: 500,
+    data: '2026-04-23',
+    hora: '16:40',
+    usuario: 'admin',
+    origem: 'Pedido Farmácia FARMEXE',
+  },
+];
+
 const produtos = [
   // Perfumes 100ml
   {
@@ -724,6 +796,55 @@ export default function Estoque() {
           </div>
         </form>
       </dialog>
+      <section className={styles.table_container}>
+        <h2>Histórico de Movimentações</h2>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className="pseudo-title">Data/Hora</th>
+              <th className="pseudo-title">Produto</th>
+              <th className="pseudo-title">Tipo</th>
+              <th className="pseudo-title">Quantidade</th>
+              <th className="pseudo-title">Origem</th>
+              <th className="pseudo-title">Usuário</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {movimentacoes.map((movimentacao) => {
+              return (
+                <tr className={styles.text_only} key={movimentacao.id}>
+                  <td>
+                    {movimentacao.data.split('-').reverse().join('/')}{' '}
+                    {movimentacao.hora}
+                  </td>
+                  <td>
+                    {produtos.find(
+                      (produto) => produto.id === movimentacao.produtoId,
+                    )?.nome ?? movimentacao.produtoId}
+                  </td>
+                  <td>
+                    <span
+                      className={
+                        movimentacao.tipo == 'entrada'
+                          ? styles.entrada
+                          : styles.saida
+                      }
+                    ></span>
+                  </td>
+                  <td>
+                    {movimentacao.tipo === 'entrada'
+                      ? `+ ${movimentacao.quantidade}`
+                      : `- ${movimentacao.quantidade}`}
+                  </td>
+                  <td>{movimentacao.origem}</td>
+                  <td>{movimentacao.usuario}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
     </>
   );
 }

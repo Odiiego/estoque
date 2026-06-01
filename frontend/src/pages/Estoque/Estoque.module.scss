@@ -40,6 +40,9 @@
     padding: 1.5rem;
     font-size: 1rem;
   }
+  &:not(:first-child) {
+    margin-top: 2rem;
+  }
 }
 
 .table {
@@ -58,6 +61,12 @@
   }
 
   tbody {
+    .text_only {
+      td {
+        padding: 0.75rem;
+      }
+    }
+
     tr {
       transition: background 0.2s;
 
@@ -67,6 +76,7 @@
 
       td {
         padding: 0.25rem;
+        min-height: 100px;
         border-top: 1px solid #ececec;
         text-align: center;
 
@@ -211,19 +221,29 @@
 .normal,
 .atencao,
 .ruptura,
-.baixo {
+.baixo,
+.entrada,
+.saida {
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   font-size: 0.875rem;
   font-weight: 600;
 }
 
-.normal {
+.normal,
+.entrada {
   background-color: #dcfce7;
   color: #166534;
   &::before {
     content: 'Normal';
   }
+}
+.normal::before {
+  content: 'Normal';
+}
+
+.entrada::before {
+  content: 'Entrada';
 }
 
 .atencao {
@@ -234,12 +254,18 @@
   }
 }
 
-.ruptura {
+.ruptura,
+.saida {
   background-color: #fee2e2;
   color: #991b1b;
-  &::before {
-    content: 'Ruptura';
-  }
+}
+
+.ruptura::before {
+  content: 'Ruptura';
+}
+
+.saida::before {
+  content: 'Saída';
 }
 
 .baixo {
