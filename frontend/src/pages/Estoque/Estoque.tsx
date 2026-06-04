@@ -1,27 +1,27 @@
 /* eslint-disable react-hooks/refs */
 import { Package, Plus, X } from 'lucide-react';
 import styles from './Estoque.module.scss';
-import { useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-const fornecedores = [
-  {
-    id: 'FM001',
-    nome: 'FORNMASC LTDA',
-    cnpj: '12.345.678/0001-90',
-    email: 'contato@fornmasc.com.br',
-    telefone: '(11) 3456-7890',
-    endereco: 'Rua dos Perfumes, 100 - São Paulo/SP',
-  },
-  {
-    id: 'FF001',
-    nome: 'FORNFEM LTDA',
-    cnpj: '98.765.432/0001-10',
-    email: 'vendas@fornfem.com.br',
-    telefone: '(21) 2345-6789',
-    endereco: 'Av. das Fragrâncias, 200 - Rio de Janeiro/RJ',
-  },
-];
+// const fornecedores = [
+//   {
+//     id: 'FM001',
+//     nome: 'FORNMASC LTDA',
+//     cnpj: '12.345.678/0001-90',
+//     email: 'contato@fornmasc.com.br',
+//     telefone: '(11) 3456-7890',
+//     endereco: 'Rua dos Perfumes, 100 - São Paulo/SP',
+//   },
+//   {
+//     id: 'FF001',
+//     nome: 'FORNFEM LTDA',
+//     cnpj: '98.765.432/0001-10',
+//     email: 'vendas@fornfem.com.br',
+//     telefone: '(21) 2345-6789',
+//     endereco: 'Av. das Fragrâncias, 200 - Rio de Janeiro/RJ',
+//   },
+// ];
 
 const movimentacoes = [
   {
@@ -603,6 +603,19 @@ type AjusteEstoqueForm = {
 };
 
 export default function Estoque() {
+  // Filtros da tabela de estoque
+  const [produtoFiltro, setProdutoFiltro] = useState('');
+  const [statusFiltro, setStatusFiltro] = useState('');
+
+  // Filtros da tabela de movimentações
+  const [dataFiltro, setDataFiltro] = useState('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+
+  const [origemFiltro, setOrigemFiltro] = useState('');
+  const [usuarioFiltro, setUsuarioFiltro] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState('');
+
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const {
@@ -625,6 +638,77 @@ export default function Estoque() {
     dialogRef.current?.close();
   };
 
+  const getStatus = (produto: (typeof produtos)[number]) => {
+    if (produto.estoqueAtual === 0) return 'ruptura';
+    if (produto.estoqueAtual <= produto.estoqueMinimo) return 'baixo';
+    if (produto.estoqueAtual <= produto.pontoReposicao) return 'atencao';
+
+    return 'normal';
+  };
+
+  const produtosFiltrados = useMemo(() => {
+    return produtos.filter((produto) => {
+      const matchProduto =
+        produtoFiltro === '' ||
+        produto.nome.toLowerCase().includes(produtoFiltro.toLowerCase()) ||
+        produto.codigo.includes(produtoFiltro);
+
+      const matchStatus =
+        statusFiltro === '' || getStatus(produto) === statusFiltro;
+
+      return matchProduto && matchStatus;
+    });
+  }, [produtoFiltro, statusFiltro]);
+
+  const movimentacoesFiltradas = useMemo(() => {
+    return movimentacoes.filter((movimentacao) => {
+      let matchData = true;
+
+      // Filtro por data específica
+      if (dataFiltro) {
+        matchData = movimentacao.data === dataFiltro;
+      }
+
+      // Filtro por período
+      if (dataInicio && dataFim) {
+        matchData =
+          movimentacao.data >= dataInicio && movimentacao.data <= dataFim;
+      }
+
+      const matchOrigem = !origemFiltro || movimentacao.origem === origemFiltro;
+
+      const matchUsuario =
+        !usuarioFiltro || movimentacao.usuario === usuarioFiltro;
+
+      const matchTipo = !tipoFiltro || movimentacao.tipo === tipoFiltro;
+
+      return matchData && matchOrigem && matchUsuario && matchTipo;
+    });
+  }, [
+    dataFiltro,
+    dataInicio,
+    dataFim,
+    origemFiltro,
+    usuarioFiltro,
+    tipoFiltro,
+  ]);
+
+  const datasDisponiveis = useMemo(() => {
+    return [...new Set(movimentacoes.map((m) => m.data))].sort();
+  }, []);
+
+  const origensDisponiveis = useMemo(() => {
+    return [...new Set(movimentacoes.map((m) => m.origem))].sort();
+  }, []);
+
+  const tiposDisponiveis = useMemo(() => {
+    return [...new Set(movimentacoes.map((m) => m.tipo))];
+  }, []);
+
+  const usuariosDisponiveis = useMemo(() => {
+    return [...new Set(movimentacoes.map((m) => m.usuario))].sort();
+  }, []);
+
   return (
     <>
       <section className={styles.header}>
@@ -633,12 +717,45 @@ export default function Estoque() {
           <p>Gerencie ajustes de estoque</p>
         </div>
         <button onClick={() => dialogRef.current?.showModal()}>
-          <Plus size={18} />
+          <Plus strokeWidth={4} size={22} />
           Ajuste
         </button>
       </section>
       <section className={styles.table_container}>
-        <h2>Saldo Atual por Produto</h2>
+        <div className={styles.table_header}>
+          <h2>Saldo Atual por Produto</h2>
+          <div className={styles.filter_container}>
+            <label>
+              <input
+                type="text"
+                placeholder="Buscar produto ou código..."
+                value={produtoFiltro}
+                onChange={(e) => setProdutoFiltro(e.target.value)}
+              />
+            </label>
+            <label>
+              <select
+                value={statusFiltro}
+                onChange={(e) => setStatusFiltro(e.target.value)}
+              >
+                <option value="">Todos os status</option>
+                <option value="normal">Normal</option>
+                <option value="atencao">Atenção</option>
+                <option value="baixo">Baixo</option>
+                <option value="ruptura">Ruptura</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                setProdutoFiltro('');
+                setStatusFiltro('');
+              }}
+            >
+              Limpar filtros
+            </button>
+          </div>
+        </div>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -653,7 +770,7 @@ export default function Estoque() {
           </thead>
 
           <tbody>
-            {produtos.map((produto) => {
+            {produtosFiltrados.map((produto) => {
               return (
                 <tr key={produto.codigo}>
                   <td>
@@ -666,17 +783,7 @@ export default function Estoque() {
                   <td>{produto.estoqueAtual} un</td>
                   <td>{produto.estoqueMinimo} un</td>
                   <td>
-                    <span
-                      className={
-                        produto.estoqueAtual === 0
-                          ? styles.ruptura
-                          : produto.estoqueAtual <= produto.estoqueMinimo
-                            ? styles.baixo
-                            : produto.estoqueAtual <= produto.pontoReposicao
-                              ? styles.atencao
-                              : styles.normal
-                      }
-                    ></span>
+                    <span className={styles[getStatus(produto)]}></span>
                   </td>
                   <td>
                     {(
@@ -698,7 +805,10 @@ export default function Estoque() {
           <X
             size={20}
             className={styles.btn_close}
-            onClick={() => dialogRef.current?.close()}
+            onClick={() => {
+              reset();
+              dialogRef.current?.close();
+            }}
           />
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className={styles.modal_form}>
@@ -797,7 +907,112 @@ export default function Estoque() {
         </form>
       </dialog>
       <section className={styles.table_container}>
-        <h2>Histórico de Movimentações</h2>
+        <div className={styles.table_header}>
+          <h2>Histórico de Movimentações</h2>
+          <div className={styles.filter_container_multiplerows}>
+            <label>
+              <select
+                value={dataFiltro}
+                onChange={(e) => {
+                  setDataFiltro(e.target.value);
+
+                  if (e.target.value) {
+                    setDataInicio('');
+                    setDataFim('');
+                  }
+                }}
+              >
+                <option value="">Todas as datas</option>
+
+                {datasDisponiveis.map((data) => (
+                  <option key={data} value={data}>
+                    {data.split('-').reverse().join('/')}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <input
+                type="date"
+                value={dataInicio}
+                onChange={(e) => {
+                  setDataInicio(e.target.value);
+                  setDataFiltro('');
+                }}
+              />
+            </label>
+
+            <label>
+              <input
+                type="date"
+                value={dataFim}
+                onChange={(e) => {
+                  setDataFim(e.target.value);
+                  setDataFiltro('');
+                }}
+              />
+            </label>
+
+            <label>
+              <select
+                value={origemFiltro}
+                onChange={(e) => setOrigemFiltro(e.target.value)}
+              >
+                <option value="">Todas as origens</option>
+
+                {origensDisponiveis.map((origem) => (
+                  <option key={origem} value={origem}>
+                    {origem}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <select
+                value={usuarioFiltro}
+                onChange={(e) => setUsuarioFiltro(e.target.value)}
+              >
+                <option value="">Todos os usuários</option>
+
+                {usuariosDisponiveis.map((usuario) => (
+                  <option key={usuario} value={usuario}>
+                    {usuario}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <select
+                value={tipoFiltro}
+                onChange={(e) => setTipoFiltro(e.target.value)}
+              >
+                <option value="">Todos os tipos</option>
+
+                {tiposDisponiveis.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDataFiltro('');
+                setDataInicio('');
+                setDataFim('');
+                setOrigemFiltro('');
+                setUsuarioFiltro('');
+                setTipoFiltro('');
+              }}
+            >
+              Limpar filtros
+            </button>
+          </div>
+        </div>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -811,7 +1026,7 @@ export default function Estoque() {
           </thead>
 
           <tbody>
-            {movimentacoes.map((movimentacao) => {
+            {movimentacoesFiltradas.map((movimentacao) => {
               return (
                 <tr className={styles.text_only} key={movimentacao.id}>
                   <td>
