@@ -5,14 +5,13 @@
 
   .user_icon {
     padding: 0.25rem;
-    background-color: #f9a8d4;
+    background-color: #c084e8;
     border-radius: 50%;
   }
 
   .user_info {
     display: flex;
     flex-direction: column;
-    text-align: center;
 
     :first-child {
       color: white;
