@@ -16,11 +16,11 @@ export default function HolyGrail() {
 
       <main className={styles.main}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/estoque" element={<Estoque />} />
-          <Route path="/pedidos" element={<Pedidos />} />
-          <Route path="/reposicao" element={<Reposicao />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path='/' element={<Home />} />
+          <Route path='/estoque' element={<Estoque />} />
+          <Route path='/pedidos' element={<Pedidos />} />
+          <Route path='/reposicao' element={<Reposicao />} />
+          <Route path='/dashboard' element={<Dashboard />} />
         </Routes>
       </main>
     </div>

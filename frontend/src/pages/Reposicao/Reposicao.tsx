@@ -452,10 +452,10 @@ export default function Reposicao() {
   const atualizarLinha = (
     key: string,
     campo: 'produtoId' | 'quantidade',
-    valor: string | number,
+    valor: string | number
   ) => {
     setFormItens((prev) =>
-      prev.map((i) => (i._key === key ? { ...i, [campo]: valor } : i)),
+      prev.map((i) => (i._key === key ? { ...i, [campo]: valor } : i))
     );
   };
 
@@ -481,7 +481,7 @@ export default function Reposicao() {
 
   const produtosAbaixoMinimo = useMemo(
     () => produtos.filter((p) => p.estoqueAtual < p.estoqueMinimo),
-    [],
+    []
   );
 
   const pedidosFiltrados = useMemo(() => {
@@ -531,12 +531,12 @@ export default function Reposicao() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className="pseudo-title">Código</th>
-                <th className="pseudo-title">Produto</th>
-                <th className="pseudo-title">Estoque Atual</th>
-                <th className="pseudo-title">Estoque Mínimo</th>
-                <th className="pseudo-title">Fornecedor</th>
-                <th className="pseudo-title">Lote Econômico</th>
+                <th className='pseudo-title'>Código</th>
+                <th className='pseudo-title'>Produto</th>
+                <th className='pseudo-title'>Estoque Atual</th>
+                <th className='pseudo-title'>Estoque Mínimo</th>
+                <th className='pseudo-title'>Fornecedor</th>
+                <th className='pseudo-title'>Lote Econômico</th>
               </tr>
             </thead>
             <tbody>
@@ -576,9 +576,9 @@ export default function Reposicao() {
                 {...register('fornecedor', {
                   required: 'Selecione um fornecedor',
                 })}
-                defaultValue=""
+                defaultValue=''
               >
-                <option value="" disabled>
+                <option value='' disabled>
                   Selecione um fornecedor...
                 </option>
                 {fornecedores.map((f) => (
@@ -593,7 +593,7 @@ export default function Reposicao() {
             <label>
               Data
               <input
-                type="date"
+                type='date'
                 {...register('data', { required: 'Informe a data' })}
               />
               {errors.data && <span>{errors.data.message}</span>}
@@ -603,7 +603,7 @@ export default function Reposicao() {
           <div className={styles.itens_header}>
             <span>Itens do Pedido</span>
             <button
-              type="button"
+              type='button'
               className={styles.btn_add_linha}
               onClick={adicionarLinha}
             >
@@ -619,7 +619,7 @@ export default function Reposicao() {
             )}
             {formItens.map((item) => {
               const produtoSelecionado = produtos.find(
-                (p) => p.id === item.produtoId,
+                (p) => p.id === item.produtoId
               );
               const subtotal =
                 (produtoSelecionado?.custoUnitario ?? 0) *
@@ -633,7 +633,7 @@ export default function Reposicao() {
                       atualizarLinha(item._key, 'produtoId', e.target.value)
                     }
                   >
-                    <option value="" disabled>
+                    <option value='' disabled>
                       Selecione um produto...
                     </option>
                     {produtos.map((p) => (
@@ -643,15 +643,15 @@ export default function Reposicao() {
                     ))}
                   </select>
                   <input
-                    type="number"
-                    placeholder="Qtd"
+                    type='number'
+                    placeholder='Qtd'
                     min={1}
                     value={item.quantidade || ''}
                     onChange={(e) =>
                       atualizarLinha(
                         item._key,
                         'quantidade',
-                        Number(e.target.value),
+                        Number(e.target.value)
                       )
                     }
                   />
@@ -675,10 +675,10 @@ export default function Reposicao() {
           )}
 
           <div className={styles.modal_footer}>
-            <button type="button" onClick={fecharModal}>
+            <button type='button' onClick={fecharModal}>
               Cancelar
             </button>
-            <button type="submit">Registrar Pedido</button>
+            <button type='submit'>Registrar Pedido</button>
           </div>
         </form>
       </dialog>
@@ -690,8 +690,8 @@ export default function Reposicao() {
           <div className={styles.filter_container_multiplerows}>
             <label>
               <input
-                type="text"
-                placeholder="Buscar pedido ou fornecedor..."
+                type='text'
+                placeholder='Buscar pedido ou fornecedor...'
                 value={pedidoFiltro}
                 onChange={(e) => setPedidoFiltro(e.target.value)}
               />
@@ -701,9 +701,9 @@ export default function Reposicao() {
                 value={tipoFiltro}
                 onChange={(e) => setTipoFiltro(e.target.value)}
               >
-                <option value="">Todos os tipos</option>
-                <option value="Automático">Automático</option>
-                <option value="Manual">Manual</option>
+                <option value=''>Todos os tipos</option>
+                <option value='Automático'>Automático</option>
+                <option value='Manual'>Manual</option>
               </select>
             </label>
             <label>
@@ -711,13 +711,13 @@ export default function Reposicao() {
                 value={statusFiltro}
                 onChange={(e) => setStatusFiltro(e.target.value)}
               >
-                <option value="">Todos os status</option>
-                <option value="Realizado">Realizado</option>
-                <option value="Processando">Processando</option>
+                <option value=''>Todos os status</option>
+                <option value='Realizado'>Realizado</option>
+                <option value='Processando'>Processando</option>
               </select>
             </label>
             <button
-              type="button"
+              type='button'
               onClick={() => {
                 setPedidoFiltro('');
                 setTipoFiltro('');
@@ -732,19 +732,19 @@ export default function Reposicao() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className="pseudo-title">Pedido</th>
-              <th className="pseudo-title">Fornecedor</th>
-              <th className="pseudo-title">Data</th>
-              <th className="pseudo-title">Tipo</th>
-              <th className="pseudo-title">Itens</th>
-              <th className="pseudo-title">Valor Total</th>
-              <th className="pseudo-title">Status</th>
+              <th className='pseudo-title'>Pedido</th>
+              <th className='pseudo-title'>Fornecedor</th>
+              <th className='pseudo-title'>Data</th>
+              <th className='pseudo-title'>Tipo</th>
+              <th className='pseudo-title'>Itens</th>
+              <th className='pseudo-title'>Valor Total</th>
+              <th className='pseudo-title'>Status</th>
             </tr>
           </thead>
           <tbody>
             {pedidosFiltrados.map((pedido) => {
               const fornecedor = fornecedores.find(
-                (f) => f.id === pedido.fornecedorId,
+                (f) => f.id === pedido.fornecedorId
               );
               const valorTotal = pedido.itens.reduce((acc, item) => {
                 const produto = produtos.find((p) => p.id === item.produtoId);
@@ -768,7 +768,7 @@ export default function Reposicao() {
                   <td className={styles.td_itens}>
                     {pedido.itens.map((item) => {
                       const produto = produtos.find(
-                        (p) => p.id === item.produtoId,
+                        (p) => p.id === item.produtoId
                       );
                       return (
                         <div key={item.produtoId}>

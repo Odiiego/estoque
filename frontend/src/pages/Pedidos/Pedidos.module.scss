@@ -1,0 +1,14 @@
+.headerPedidos {
+  margin-bottom: 2rem;
+}
+
+.gridCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding-bottom: 20px;
+  width: 100%;
+  align-items: start;
+
+  box-sizing: border-box;
+}
