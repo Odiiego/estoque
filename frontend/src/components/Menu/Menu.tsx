@@ -1,7 +1,6 @@
 import {
   ArrowDownUp,
   ChartColumn,
-  House,
   ShoppingCart,
   UsersRound,
 } from 'lucide-react';
@@ -14,21 +13,11 @@ export default function Menu() {
   return (
     <nav className={styles.menu}>
       <ul>
-        <p className="pseudo-title">Menu Principal</p>
+        <p className='pseudo-title'>Menu Principal</p>
 
         <li>
           <NavLink
-            to="/"
-            className={({ isActive }) => (isActive ? styles.active : '')}
-          >
-            <House size={20} />
-            Home
-          </NavLink>
-        </li>
-
-        <li>
-          <NavLink
-            to="/estoque"
+            to='/estoque'
             className={({ isActive }) => (isActive ? styles.active : '')}
           >
             <ArrowDownUp size={20} />
@@ -38,7 +27,7 @@ export default function Menu() {
 
         <li>
           <NavLink
-            to="/pedidos"
+            to='/pedidos'
             className={({ isActive }) => (isActive ? styles.active : '')}
           >
             <ShoppingCart size={20} />
@@ -48,7 +37,7 @@ export default function Menu() {
 
         <li>
           <NavLink
-            to="/reposicao"
+            to='/reposicao'
             className={({ isActive }) => (isActive ? styles.active : '')}
           >
             <UsersRound size={20} />
@@ -58,7 +47,7 @@ export default function Menu() {
 
         <li>
           <NavLink
-            to="/dashboard"
+            to='/dashboard'
             className={({ isActive }) => (isActive ? styles.active : '')}
           >
             <ChartColumn size={20} />

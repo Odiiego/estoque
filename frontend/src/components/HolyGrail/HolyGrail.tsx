@@ -6,7 +6,6 @@ import Pedidos from '../../pages/Pedidos/Pedidos';
 import Reposicao from '../../pages/Reposicao/Reposicao';
 import Dashboard from '../../pages/Dashboard/Dashboard';
 import Menu from '../Menu/Menu';
-import Home from '../../pages/Home';
 
 export default function HolyGrail() {
   return (
@@ -16,7 +15,6 @@ export default function HolyGrail() {
 
       <main className={styles.main}>
         <Routes>
-          <Route path='/' element={<Home />} />
           <Route path='/estoque' element={<Estoque />} />
           <Route path='/pedidos' element={<Pedidos />} />
           <Route path='/reposicao' element={<Reposicao />} />
