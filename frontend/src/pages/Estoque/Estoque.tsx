@@ -28,6 +28,51 @@ type Movimentacao = {
   txUsuario: string;
 };
 
+type Reposicao = {
+  id: number;
+  produtoId: number;
+  fornecedorId: number;
+  nrQuantidade: number;
+  nrPrecounitario: string;
+  nrDescontounitario: number;
+  subtotal: number;
+  tipo: string;
+  flIsenable: boolean;
+};
+
+type Pedido = {
+  id: number;
+  clienteId: number;
+  vendedorId: number;
+  nrPedido: string;
+  dtDatapedido: string;
+  nrValorbruto: number;
+  nrValordesconto: number;
+  nrValorliquido: number;
+  flIsenable: boolean;
+};
+
+type ItemPedido = {
+  id: number;
+  pedidoId: number;
+  produtoId: number;
+  nrQuantidade: number;
+  nrPrecounitario: number;
+  nrDescontounitario: number;
+  nrSubtotal: number;
+  flIsenable: boolean;
+};
+
+type MovimentacaoUnificada = {
+  id: string;
+  produtoId: number | null;
+  txTipo: 'entrada' | 'saida';
+  nrQuantidade: number;
+  dtMovimentacao: string | null; // null = deixar em branco
+  txOrigem: string;
+  txUsuario: string;
+};
+
 type AjusteEstoqueForm = {
   produto: string;
   quantidade: number;
@@ -108,6 +153,9 @@ function SkeletonTabelaMovimentacoes() {
 export default function Estoque() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
+  const [reposicoes, setReposicoes] = useState<Reposicao[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [itensPedido, setItensPedido] = useState<ItemPedido[]>([]);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [loadingMovimentacoes, setLoadingMovimentacoes] = useState(true);
 
@@ -158,8 +206,38 @@ export default function Estoque() {
       }
     }
 
+    async function fetchReposicoes() {
+      try {
+        const res = await fetch(`${API}/Reposicoes`, { headers: HEADERS });
+        setReposicoes(await res.json());
+      } catch (err) {
+        console.error('Erro ao buscar reposições:', err);
+      }
+    }
+
+    async function fetchPedidos() {
+      try {
+        const res = await fetch(`${API}/Pedidos`, { headers: HEADERS });
+        setPedidos(await res.json());
+      } catch (err) {
+        console.error('Erro ao buscar pedidos:', err);
+      }
+    }
+
+    async function fetchItensPedido() {
+      try {
+        const res = await fetch(`${API}/ItensPedido`, { headers: HEADERS });
+        setItensPedido(await res.json());
+      } catch (err) {
+        console.error('Erro ao buscar itens de pedido:', err);
+      }
+    }
+
     fetchProdutos();
     fetchMovimentacoes();
+    fetchReposicoes();
+    fetchPedidos();
+    fetchItensPedido();
   }, []);
 
   // ─── Form ───────────────────────────────────────────────────────────────────
@@ -191,14 +269,69 @@ export default function Estoque() {
     });
   }, [produtos, produtoFiltro, statusFiltro]);
 
-  const movimentacoesFiltradas = useMemo(() => {
-    return movimentacoes.filter((m) => {
-      const dataISO = m.dtMovimentacao.split('T')[0];
+  // ─── Composição das movimentações ────────────────────────────────────────────
 
+  const movimentacoesUnificadas = useMemo<MovimentacaoUnificada[]>(() => {
+    const deMovimentacoes: MovimentacaoUnificada[] = movimentacoes.map((m) => ({
+      id: `mov-${m.id}`,
+      produtoId: m.produtoId,
+      txTipo: m.txTipo,
+      nrQuantidade: m.nrQuantidade,
+      dtMovimentacao: m.dtMovimentacao,
+      txOrigem: m.txOrigem,
+      txUsuario: m.txUsuario,
+    }));
+
+    const deReposicoes: MovimentacaoUnificada[] = reposicoes.map((r) => ({
+      id: `rep-${r.id}`,
+      produtoId: r.produtoId,
+      txTipo: 'entrada',
+      nrQuantidade: r.nrQuantidade,
+      dtMovimentacao: null,
+      txOrigem: 'Reposição',
+      txUsuario: '—',
+    }));
+
+    const dePedidos: MovimentacaoUnificada[] = pedidos.flatMap((p) => {
+      const itens = itensPedido.filter((i) => i.pedidoId === p.id);
+      if (itens.length === 0) return [];
+      return itens.map((item) => ({
+        id: `ped-${p.id}-item-${item.id}`,
+        produtoId: item.produtoId,
+        txTipo: 'saida' as const,
+        nrQuantidade: item.nrQuantidade,
+        dtMovimentacao: p.dtDatapedido ?? null,
+        txOrigem: `Pedido #${p.nrPedido}`,
+        txUsuario: '—',
+      }));
+    });
+
+    const todas = [...deMovimentacoes, ...deReposicoes, ...dePedidos];
+
+    // Mais recentes primeiro; registros sem data ficam no final
+    return todas.sort((a, b) => {
+      if (!a.dtMovimentacao && !b.dtMovimentacao) return 0;
+      if (!a.dtMovimentacao) return 1;
+      if (!b.dtMovimentacao) return -1;
+      return (
+        new Date(b.dtMovimentacao).getTime() -
+        new Date(a.dtMovimentacao).getTime()
+      );
+    });
+  }, [movimentacoes, reposicoes, pedidos, itensPedido]);
+
+  const movimentacoesFiltradas = useMemo(() => {
+    return movimentacoesUnificadas.filter((m) => {
       let matchData = true;
-      if (dataFiltro) matchData = dataISO === dataFiltro;
-      else if (dataInicio && dataFim)
-        matchData = dataISO >= dataInicio && dataISO <= dataFim;
+      if (m.dtMovimentacao) {
+        const dataISO = m.dtMovimentacao.split('T')[0];
+        if (dataFiltro) matchData = dataISO === dataFiltro;
+        else if (dataInicio && dataFim)
+          matchData = dataISO >= dataInicio && dataISO <= dataFim;
+      } else {
+        // Sem data: exclui dos filtros de data quando um filtro estiver ativo
+        if (dataFiltro || (dataInicio && dataFim)) matchData = false;
+      }
 
       const matchOrigem = !origemFiltro || m.txOrigem === origemFiltro;
       const matchTipo = !tipoFiltro || m.txTipo === tipoFiltro;
@@ -206,7 +339,7 @@ export default function Estoque() {
       return matchData && matchOrigem && matchTipo;
     });
   }, [
-    movimentacoes,
+    movimentacoesUnificadas,
     dataFiltro,
     dataInicio,
     dataFim,
@@ -218,13 +351,17 @@ export default function Estoque() {
   const datasDisponiveis = useMemo(
     () =>
       [
-        ...new Set(movimentacoes.map((m) => m.dtMovimentacao.split('T')[0])),
+        ...new Set(
+          movimentacoesUnificadas
+            .filter((m) => m.dtMovimentacao !== null)
+            .map((m) => m.dtMovimentacao!.split('T')[0]),
+        ),
       ].sort(),
-    [movimentacoes],
+    [movimentacoesUnificadas],
   );
   const origensDisponiveis = useMemo(
-    () => [...new Set(movimentacoes.map((m) => m.txOrigem))].sort(),
-    [movimentacoes],
+    () => [...new Set(movimentacoesUnificadas.map((m) => m.txOrigem))].sort(),
+    [movimentacoesUnificadas],
   );
 
   // ─── Paginação ───────────────────────────────────────────────────────────────
@@ -533,14 +670,20 @@ export default function Estoque() {
               <SkeletonTabelaMovimentacoes />
             ) : (
               pagMovimentacoes.itensPagina.map((m) => {
-                const produto = produtos.find((p) => p.id === m.produtoId);
+                const produto = m.produtoId
+                  ? produtos.find((p) => p.id === m.produtoId)
+                  : null;
                 return (
                   <tr className={styles.text_only} key={m.id}>
                     <td>
-                      {formatarData(m.dtMovimentacao)}{' '}
-                      {formatarHora(m.dtMovimentacao)}
+                      {m.dtMovimentacao
+                        ? `${formatarData(m.dtMovimentacao)} ${formatarHora(m.dtMovimentacao)}`
+                        : '—'}
                     </td>
-                    <td>{produto?.txDescricao ?? `Produto #${m.produtoId}`}</td>
+                    <td>
+                      {produto?.txDescricao ??
+                        (m.produtoId ? `Produto #${m.produtoId}` : '—')}
+                    </td>
                     <td>
                       <span
                         className={
@@ -549,9 +692,11 @@ export default function Estoque() {
                       />
                     </td>
                     <td>
-                      {m.txTipo === 'entrada'
-                        ? `+ ${m.nrQuantidade}`
-                        : `- ${m.nrQuantidade}`}
+                      {m.nrQuantidade > 0
+                        ? m.txTipo === 'entrada'
+                          ? `+ ${m.nrQuantidade}`
+                          : `- ${m.nrQuantidade}`
+                        : '—'}
                     </td>
                     <td>{m.txOrigem}</td>
                     <td>{m.txUsuario}</td>
