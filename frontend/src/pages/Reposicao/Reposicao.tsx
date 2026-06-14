@@ -30,27 +30,18 @@ type Produto = {
   flIsenable: boolean;
 };
 
-type Pedido = {
+type Reposicao = {
   id: number;
-  clienteId: number;
-  vendedorId: number;
-  nrPedido: string;
-  dtDatapedido: string;
-  nrValorbruto: number;
-  nrValordesconto: number;
-  nrValorliquido: number;
-  flIsenable: boolean;
-};
-
-type ItemPedido = {
-  id: number;
-  pedidoId: number;
   produtoId: number;
+  fornecedorId: number;
   nrQuantidade: number;
-  nrPrecounitario: number;
+  nrPrecounitario: string;
   nrDescontounitario: number;
-  nrSubtotal: number;
+  subtotal: number;
+  tipo: string;
   flIsenable: boolean;
+  // dtData será adicionada futuramente pela API
+  dtData?: string;
 };
 
 type PedidoForm = {
@@ -124,8 +115,7 @@ function SkeletonTabelaPedidos() {
 
 export default function Reposicao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [itensPedido, setItensPedido] = useState<ItemPedido[]>([]);
+  const [reposicoes, setReposicoes] = useState<Reposicao[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [formItens, setFormItens] = useState<ItemForm[]>([]);
@@ -158,19 +148,16 @@ export default function Reposicao() {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [resProdutos, resPedidos, resItens] = await Promise.all([
+        const [resProdutos, resReposicoes] = await Promise.all([
           fetch(`${API}/Produtos`, { headers: HEADERS }),
-          fetch(`${API}/Pedidos`, { headers: HEADERS }),
-          fetch(`${API}/ItensPedido`, { headers: HEADERS }),
+          fetch(`${API}/Reposicoes`, { headers: HEADERS }),
         ]);
-        const [dataProdutos, dataPedidos, dataItens] = await Promise.all([
+        const [dataProdutos, dataReposicoes] = await Promise.all([
           resProdutos.json(),
-          resPedidos.json(),
-          resItens.json(),
+          resReposicoes.json(),
         ]);
         setProdutos(dataProdutos);
-        setPedidos(dataPedidos);
-        setItensPedido(dataItens);
+        setReposicoes(dataReposicoes);
       } catch (err) {
         console.error('Erro ao carregar reposição:', err);
       } finally {
@@ -242,35 +229,36 @@ export default function Reposicao() {
     [produtos],
   );
 
-  const pedidosComItem = useMemo(() => {
-    return pedidos.map((pedido) => {
-      const item = itensPedido.find((i) => i.pedidoId === pedido.id);
-      const produto = produtos.find((p) => p.id === item?.produtoId);
+  const reposicoesEnriquecidas = useMemo(() => {
+    return reposicoes.map((reposicao) => {
+      const produto = produtos.find((p) => p.id === reposicao.produtoId);
       const fornecedor = getFornecedorPorGenero(getGeneroProduto(produto));
 
-      // TODO: a API ainda não define "tipo" — todos tratados como "Automático"
-      const tipo: 'Automático' | 'Manual' = 'Automático';
-      const status: 'Realizado' | 'Processando' = pedido.flIsenable
+      const tipo: 'Automático' | 'Manual' =
+        reposicao.tipo === 'Manual' ? 'Manual' : 'Automático';
+      const status: 'Realizado' | 'Processando' = reposicao.flIsenable
         ? 'Realizado'
         : 'Processando';
 
-      return { pedido, item, produto, fornecedor, tipo, status };
+      return { reposicao, produto, fornecedor, tipo, status };
     });
-  }, [pedidos, itensPedido, produtos]);
+  }, [reposicoes, produtos]);
 
-  const pedidosFiltrados = useMemo(() => {
-    return pedidosComItem.filter(({ pedido, fornecedor, tipo, status }) => {
-      const matchBusca =
-        pedidoFiltro === '' ||
-        pedido.nrPedido.toLowerCase().includes(pedidoFiltro.toLowerCase()) ||
-        fornecedor?.nome.toLowerCase().includes(pedidoFiltro.toLowerCase());
+  const reposicoesFiltradas = useMemo(() => {
+    return reposicoesEnriquecidas.filter(
+      ({ reposicao, fornecedor, tipo, status }) => {
+        const matchBusca =
+          pedidoFiltro === '' ||
+          String(reposicao.id).includes(pedidoFiltro.toLowerCase()) ||
+          fornecedor?.nome.toLowerCase().includes(pedidoFiltro.toLowerCase());
 
-      const matchTipo = tipoFiltro === '' || tipo === tipoFiltro;
-      const matchStatus = statusFiltro === '' || status === statusFiltro;
+        const matchTipo = tipoFiltro === '' || tipo === tipoFiltro;
+        const matchStatus = statusFiltro === '' || status === statusFiltro;
 
-      return matchBusca && matchTipo && matchStatus;
-    });
-  }, [pedidosComItem, pedidoFiltro, tipoFiltro, statusFiltro]);
+        return matchBusca && matchTipo && matchStatus;
+      },
+    );
+  }, [reposicoesEnriquecidas, pedidoFiltro, tipoFiltro, statusFiltro]);
 
   const totalForm = formItens.reduce((acc, item) => {
     const produto = produtos.find((p) => String(p.id) === item.produtoId);
@@ -280,9 +268,9 @@ export default function Reposicao() {
   // ─── Paginação ───────────────────────────────────────────────────────────────
 
   const pagAlerta = usePaginacao(produtosAbaixoMinimo);
-  const pagPedidos = usePaginacao(pedidosFiltrados);
+  const pagPedidos = usePaginacao(reposicoesFiltradas);
 
-  useMemo(() => pagPedidos.resetar(), [pedidosFiltrados]);
+  useMemo(() => pagPedidos.resetar(), [reposicoesFiltradas]);
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -536,11 +524,13 @@ export default function Reposicao() {
               <SkeletonTabelaPedidos />
             ) : (
               pagPedidos.itensPagina.map(
-                ({ pedido, item, produto, fornecedor, tipo, status }) => (
-                  <tr className={styles.text_only} key={pedido.id}>
-                    <td>{pedido.nrPedido}</td>
+                ({ reposicao, produto, fornecedor, tipo, status }) => (
+                  <tr className={styles.text_only} key={reposicao.id}>
+                    <td>#{reposicao.id}</td>
                     <td>{fornecedor?.nome ?? '—'}</td>
-                    <td>{formatarData(pedido.dtDatapedido)}</td>
+                    <td>
+                      {reposicao.dtData ? formatarData(reposicao.dtData) : '—'}
+                    </td>
                     <td>
                       <span
                         className={
@@ -552,11 +542,12 @@ export default function Reposicao() {
                     </td>
                     <td className={styles.td_itens}>
                       <div>
-                        {produto?.txDescricao ?? `Produto #${item?.produtoId}`}{' '}
-                        — {item?.nrQuantidade ?? 0} un
+                        {produto?.txDescricao ??
+                          `Produto #${reposicao.produtoId}`}{' '}
+                        — {reposicao.nrQuantidade} un
                       </div>
                     </td>
-                    <td>{formatarMoeda(pedido.nrValorliquido)}</td>
+                    <td>{formatarMoeda(reposicao.subtotal)}</td>
                     <td>
                       <span
                         className={
@@ -570,7 +561,7 @@ export default function Reposicao() {
                 ),
               )
             )}
-            {!loading && pedidosFiltrados.length === 0 && (
+            {!loading && reposicoesFiltradas.length === 0 && (
               <tr className={styles.text_only}>
                 <td colSpan={7} className={styles.vazio}>
                   Nenhum pedido encontrado.
@@ -584,7 +575,7 @@ export default function Reposicao() {
           <Paginacao
             paginaAtual={pagPedidos.paginaAtual}
             totalPaginas={pagPedidos.totalPaginas}
-            total={pedidosFiltrados.length}
+            total={reposicoesFiltradas.length}
             irPara={pagPedidos.irPara}
           />
         )}
