@@ -1,598 +1,32 @@
-/* eslint-disable react-hooks/refs */
 import { Package, Plus, X } from 'lucide-react';
 import styles from './Estoque.module.scss';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { usePaginacao } from '../../hooks/usePaginacao';
+import Paginacao from '../../components/paginacao/Paginacao';
 
-// const fornecedores = [
-//   {
-//     id: 'FM001',
-//     nome: 'FORNMASC LTDA',
-//     cnpj: '12.345.678/0001-90',
-//     email: 'contato@fornmasc.com.br',
-//     telefone: '(11) 3456-7890',
-//     endereco: 'Rua dos Perfumes, 100 - São Paulo/SP',
-//   },
-//   {
-//     id: 'FF001',
-//     nome: 'FORNFEM LTDA',
-//     cnpj: '98.765.432/0001-10',
-//     email: 'vendas@fornfem.com.br',
-//     telefone: '(21) 2345-6789',
-//     endereco: 'Av. das Fragrâncias, 200 - Rio de Janeiro/RJ',
-//   },
-// ];
+// ─── Types da API ─────────────────────────────────────────────────────────────
 
-const movimentacoes = [
-  {
-    id: '1',
-    produtoId: '100',
-    tipo: 'entrada',
-    quantidade: 500,
-    data: '2026-04-10',
-    hora: '09:30',
-    usuario: 'admin',
-    origem: 'Compra FORNMASC',
-  },
-  {
-    id: '2',
-    produtoId: '105',
-    tipo: 'entrada',
-    quantidade: 500,
-    data: '2026-04-10',
-    hora: '09:45',
-    usuario: 'admin',
-    origem: 'Compra FORNFEM',
-  },
-  {
-    id: '3',
-    produtoId: '200',
-    tipo: 'saida',
-    quantidade: 150,
-    data: '2026-04-20',
-    hora: '14:20',
-    usuario: 'admin',
-    origem: 'Pedido Farmácia FARCURA',
-  },
-  {
-    id: '4',
-    produtoId: '115',
-    tipo: 'saida',
-    quantidade: 1000,
-    data: '2026-04-22',
-    hora: '11:15',
-    usuario: 'admin',
-    origem: 'Pedido Perfumaria PERCURA',
-  },
-  {
-    id: '5',
-    produtoId: '140',
-    tipo: 'saida',
-    quantidade: 500,
-    data: '2026-04-23',
-    hora: '16:40',
-    usuario: 'admin',
-    origem: 'Pedido Farmácia FARMEXE',
-  },
-];
+type Produto = {
+  id: number;
+  txDescricao: string;
+  txUnidade: string;
+  nrPrecocusto: number;
+  nrPrecovenda: number;
+  nrEstoqueatual: number;
+  nrEstoqueminimo: number;
+  flIsenable: boolean;
+};
 
-const produtos = [
-  // Perfumes 100ml
-  {
-    id: '100',
-    codigo: '100',
-    nome: 'Perfume SOXERO 100ml masculino',
-    descricao: 'Fragrância masculina SOXERO',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 1100,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 45.0,
-  },
-  {
-    id: '105',
-    codigo: '105',
-    nome: 'Perfume SOXERO 100ml feminino',
-    descricao: 'Fragrância feminina SOXERO',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1155,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 46.2,
-  },
-  {
-    id: '110',
-    codigo: '110',
-    nome: 'Perfume SOHODOR 100ml masculino',
-    descricao: 'Fragrância masculina SOHODOR',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 1210,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 47.4,
-  },
-  {
-    id: '115',
-    codigo: '115',
-    nome: 'Perfume SOHODOR 100ml feminino',
-    descricao: 'Fragrância feminina SOHODOR',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 0,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 48.6,
-  },
-  {
-    id: '120',
-    codigo: '120',
-    nome: 'Perfume SOLAVANDO 100ml masculino',
-    descricao: 'Fragrância masculina SOLAVANDO',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 1320,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 49.8,
-  },
-  {
-    id: '125',
-    codigo: '125',
-    nome: 'Perfume SOLAVANDO 100ml feminino',
-    descricao: 'Fragrância feminina SOLAVANDO',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1375,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 51.0,
-  },
-  {
-    id: '130',
-    codigo: '130',
-    nome: 'Perfume SONAREZA 100ml masculino',
-    descricao: 'Fragrância masculina SONAREZA',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 1430,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 52.2,
-  },
-  {
-    id: '135',
-    codigo: '135',
-    nome: 'Perfume SONAREZA 100ml feminino',
-    descricao: 'Fragrância feminina SONAREZA',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1485,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 53.4,
-  },
-  {
-    id: '140',
-    codigo: '140',
-    nome: 'Perfume SONOAR 100ml masculino',
-    descricao: 'Fragrância masculina SONOAR',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 0,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 54.6,
-  },
-  {
-    id: '145',
-    codigo: '145',
-    nome: 'Perfume SONOAR 100ml feminino',
-    descricao: 'Fragrância feminina SONOAR',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1595,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 55.8,
-  },
-  {
-    id: '150',
-    codigo: '150',
-    nome: 'Perfume SOFRENCIA 100ml masculino',
-    descricao: 'Fragrância masculina SOFRENCIA',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 1650,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 57.0,
-  },
-  {
-    id: '155',
-    codigo: '155',
-    nome: 'Perfume SOFRENCIA 100ml feminino',
-    descricao: 'Fragrância feminina SOFRENCIA',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1705,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 58.2,
-  },
-  {
-    id: '160',
-    codigo: '160',
-    nome: 'Perfume SOSENTE 100ml masculino',
-    descricao: 'Fragrância masculina SOSENTE',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 1760,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 59.4,
-  },
-  {
-    id: '165',
-    codigo: '165',
-    nome: 'Perfume SOSENTE 100ml feminino',
-    descricao: 'Fragrância feminina SOSENTE',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1815,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 60.6,
-  },
-  {
-    id: '170',
-    codigo: '170',
-    nome: 'Perfume SOREZANDO 100ml masculino',
-    descricao: 'Fragrância masculina SOREZANDO',
-    categoriaId: '1',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 800,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 61.8,
-  },
-  {
-    id: '175',
-    codigo: '175',
-    nome: 'Perfume SOREZANDO 100ml feminino',
-    descricao: 'Fragrância feminina SOREZANDO',
-    categoriaId: '1',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1925,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    estoqueSeguranca: 600,
-    pontoReposicao: 700,
-    loteEconomico: 500,
-    custoUnitario: 63.0,
-  },
-
-  // Perfumes 50ml
-  {
-    id: '200',
-    codigo: '200',
-    nome: 'Perfume SOXERO 50ml masculino',
-    descricao: 'Fragrância masculina SOXERO',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2200,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 64.2,
-  },
-  {
-    id: '205',
-    codigo: '205',
-    nome: 'Perfume SOXERO 50ml feminino',
-    descricao: 'Fragrância feminina SOXERO',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 2255,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 65.4,
-  },
-  {
-    id: '210',
-    codigo: '210',
-    nome: 'Perfume SOHODOR 50ml masculino',
-    descricao: 'Fragrância masculina SOHODOR',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2310,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 66.6,
-  },
-  {
-    id: '215',
-    codigo: '215',
-    nome: 'Perfume SOHODOR 50ml feminino',
-    descricao: 'Fragrância feminina SOHODOR',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 2365,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 67.8,
-  },
-  {
-    id: '220',
-    codigo: '220',
-    nome: 'Perfume SOLAVANDO 50ml masculino',
-    descricao: 'Fragrância masculina SOLAVANDO',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2420,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 69.0,
-  },
-  {
-    id: '225',
-    codigo: '225',
-    nome: 'Perfume SOLAVANDO 50ml feminino',
-    descricao: 'Fragrância feminina SOLAVANDO',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 900,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 70.2,
-  },
-  {
-    id: '230',
-    codigo: '230',
-    nome: 'Perfume SONAREZA 50ml masculino',
-    descricao: 'Fragrância masculina SONAREZA',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2530,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 71.4,
-  },
-  {
-    id: '235',
-    codigo: '235',
-    nome: 'Perfume SONAREZA 50ml feminino',
-    descricao: 'Fragrância feminina SONAREZA',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 2585,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 72.6,
-  },
-  {
-    id: '240',
-    codigo: '240',
-    nome: 'Perfume SONOAR 50ml masculino',
-    descricao: 'Fragrância masculina SONOAR',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2640,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 73.8,
-  },
-  {
-    id: '245',
-    codigo: '245',
-    nome: 'Perfume SONOAR 50ml feminino',
-    descricao: 'Fragrância feminina SONOAR',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 0,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 75.0,
-  },
-  {
-    id: '250',
-    codigo: '250',
-    nome: 'Perfume SOFRENCIA 50ml masculino',
-    descricao: 'Fragrância masculina SOFRENCIA',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2750,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 76.2,
-  },
-  {
-    id: '255',
-    codigo: '255',
-    nome: 'Perfume SOFRENCIA 50ml feminino',
-    descricao: 'Fragrância feminina SOFRENCIA',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 2805,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 77.4,
-  },
-  {
-    id: '260',
-    codigo: '260',
-    nome: 'Perfume SOSENTE 50ml masculino',
-    descricao: 'Fragrância masculina SOSENTE',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2860,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 78.6,
-  },
-  {
-    id: '265',
-    codigo: '265',
-    nome: 'Perfume SOSENTE 50ml feminino',
-    descricao: 'Fragrância feminina SOSENTE',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 2915,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 79.8,
-  },
-  {
-    id: '270',
-    codigo: '270',
-    nome: 'Perfume SOREZANDO 50ml masculino',
-    descricao: 'Fragrância masculina SOREZANDO',
-    categoriaId: '2',
-    fornecedorId: 'FM001',
-    unidade: 'UN',
-    estoqueAtual: 2970,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 81.0,
-  },
-  {
-    id: '275',
-    codigo: '275',
-    nome: 'Perfume SOREZANDO 50ml feminino',
-    descricao: 'Fragrância feminina SOREZANDO',
-    categoriaId: '2',
-    fornecedorId: 'FF001',
-    unidade: 'UN',
-    estoqueAtual: 1200,
-    estoqueMinimo: 800,
-    estoqueMaximo: 3000,
-    estoqueSeguranca: 1000,
-    pontoReposicao: 1200,
-    loteEconomico: 800,
-    custoUnitario: 82.2,
-  },
-];
+type Movimentacao = {
+  id: number;
+  produtoId: number;
+  txTipo: 'entrada' | 'saida';
+  nrQuantidade: number;
+  dtMovimentacao: string; // ISO
+  txOrigem: string;
+  txUsuario: string;
+};
 
 type AjusteEstoqueForm = {
   produto: string;
@@ -602,18 +36,90 @@ type AjusteEstoqueForm = {
   justificativa: string;
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const API = 'http://localhost:5125/api';
+const HEADERS = { accept: 'application/json' };
+
+function getStatus(
+  produto: Pick<Produto, 'nrEstoqueatual' | 'nrEstoqueminimo'>,
+  pontoReposicao = produto.nrEstoqueminimo * 1.4,
+) {
+  if (produto.nrEstoqueatual === 0) return 'ruptura';
+  if (produto.nrEstoqueatual <= produto.nrEstoqueminimo) return 'baixo';
+  if (produto.nrEstoqueatual <= pontoReposicao) return 'atencao';
+  return 'normal';
+}
+
+function formatarData(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
+
+function formatarHora(iso: string) {
+  return new Date(iso).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatarMoeda(v: number) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// ─── Skeletons ────────────────────────────────────────────────────────────────
+
+function SkeletonTabelaEstoque() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <tr key={i}>
+          <td>
+            <div className={`${styles.img} ${styles.skeleton}`} />
+          </td>
+          {Array.from({ length: 6 }).map((_, j) => (
+            <td key={j}>
+              <div className={styles.skeleton_text} />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+function SkeletonTabelaMovimentacoes() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <tr className={styles.text_only} key={i}>
+          {Array.from({ length: 6 }).map((_, j) => (
+            <td key={j}>
+              <div className={styles.skeleton_text} />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+// ─── Componente ───────────────────────────────────────────────────────────────
+
 export default function Estoque() {
-  // Filtros da tabela de estoque
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
+  const [loadingProdutos, setLoadingProdutos] = useState(true);
+  const [loadingMovimentacoes, setLoadingMovimentacoes] = useState(true);
+
+  // Filtros — estoque
   const [produtoFiltro, setProdutoFiltro] = useState('');
   const [statusFiltro, setStatusFiltro] = useState('');
 
-  // Filtros da tabela de movimentações
+  // Filtros — movimentações
   const [dataFiltro, setDataFiltro] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
-
   const [origemFiltro, setOrigemFiltro] = useState('');
-  const [usuarioFiltro, setUsuarioFiltro] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('');
 
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -624,90 +130,113 @@ export default function Estoque() {
     reset,
     formState: { errors },
   } = useForm<AjusteEstoqueForm>({
-    defaultValues: {
-      data: new Date().toISOString().split('T')[0],
-    },
+    defaultValues: { data: new Date().toISOString().split('T')[0] },
   });
+
+  // ─── Fetch ──────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    async function fetchProdutos() {
+      try {
+        const res = await fetch(`${API}/Produtos`, { headers: HEADERS });
+        setProdutos(await res.json());
+      } catch (err) {
+        console.error('Erro ao buscar produtos:', err);
+      } finally {
+        setLoadingProdutos(false);
+      }
+    }
+
+    async function fetchMovimentacoes() {
+      try {
+        const res = await fetch(`${API}/Movimentacoes`, { headers: HEADERS });
+        setMovimentacoes(await res.json());
+      } catch (err) {
+        console.error('Erro ao buscar movimentações:', err);
+      } finally {
+        setLoadingMovimentacoes(false);
+      }
+    }
+
+    fetchProdutos();
+    fetchMovimentacoes();
+  }, []);
+
+  // ─── Form ───────────────────────────────────────────────────────────────────
 
   const onSubmit = (data: AjusteEstoqueForm) => {
     console.log(data);
-
     // Chamada da API aqui
-
     reset();
     dialogRef.current?.close();
   };
 
-  const getStatus = (produto: (typeof produtos)[number]) => {
-    if (produto.estoqueAtual === 0) return 'ruptura';
-    if (produto.estoqueAtual <= produto.estoqueMinimo) return 'baixo';
-    if (produto.estoqueAtual <= produto.pontoReposicao) return 'atencao';
-
-    return 'normal';
+  const fecharModal = () => {
+    reset();
+    dialogRef.current?.close();
   };
 
+  // ─── Dados filtrados ─────────────────────────────────────────────────────────
+
   const produtosFiltrados = useMemo(() => {
-    return produtos.filter((produto) => {
+    return produtos.filter((p) => {
       const matchProduto =
         produtoFiltro === '' ||
-        produto.nome.toLowerCase().includes(produtoFiltro.toLowerCase()) ||
-        produto.codigo.includes(produtoFiltro);
+        p.txDescricao.toLowerCase().includes(produtoFiltro.toLowerCase()) ||
+        String(p.id).includes(produtoFiltro);
 
-      const matchStatus =
-        statusFiltro === '' || getStatus(produto) === statusFiltro;
+      const matchStatus = statusFiltro === '' || getStatus(p) === statusFiltro;
 
       return matchProduto && matchStatus;
     });
-  }, [produtoFiltro, statusFiltro]);
+  }, [produtos, produtoFiltro, statusFiltro]);
 
   const movimentacoesFiltradas = useMemo(() => {
-    return movimentacoes.filter((movimentacao) => {
+    return movimentacoes.filter((m) => {
+      const dataISO = m.dtMovimentacao.split('T')[0];
+
       let matchData = true;
+      if (dataFiltro) matchData = dataISO === dataFiltro;
+      else if (dataInicio && dataFim)
+        matchData = dataISO >= dataInicio && dataISO <= dataFim;
 
-      // Filtro por data específica
-      if (dataFiltro) {
-        matchData = movimentacao.data === dataFiltro;
-      }
+      const matchOrigem = !origemFiltro || m.txOrigem === origemFiltro;
+      const matchTipo = !tipoFiltro || m.txTipo === tipoFiltro;
 
-      // Filtro por período
-      if (dataInicio && dataFim) {
-        matchData =
-          movimentacao.data >= dataInicio && movimentacao.data <= dataFim;
-      }
-
-      const matchOrigem = !origemFiltro || movimentacao.origem === origemFiltro;
-
-      const matchUsuario =
-        !usuarioFiltro || movimentacao.usuario === usuarioFiltro;
-
-      const matchTipo = !tipoFiltro || movimentacao.tipo === tipoFiltro;
-
-      return matchData && matchOrigem && matchUsuario && matchTipo;
+      return matchData && matchOrigem && matchTipo;
     });
   }, [
+    movimentacoes,
     dataFiltro,
     dataInicio,
     dataFim,
     origemFiltro,
-    usuarioFiltro,
     tipoFiltro,
   ]);
 
-  const datasDisponiveis = useMemo(() => {
-    return [...new Set(movimentacoes.map((m) => m.data))].sort();
-  }, []);
+  // Opções dinâmicas dos selects de filtro
+  const datasDisponiveis = useMemo(
+    () =>
+      [
+        ...new Set(movimentacoes.map((m) => m.dtMovimentacao.split('T')[0])),
+      ].sort(),
+    [movimentacoes],
+  );
+  const origensDisponiveis = useMemo(
+    () => [...new Set(movimentacoes.map((m) => m.txOrigem))].sort(),
+    [movimentacoes],
+  );
 
-  const origensDisponiveis = useMemo(() => {
-    return [...new Set(movimentacoes.map((m) => m.origem))].sort();
-  }, []);
+  // ─── Paginação ───────────────────────────────────────────────────────────────
 
-  const tiposDisponiveis = useMemo(() => {
-    return [...new Set(movimentacoes.map((m) => m.tipo))];
-  }, []);
+  const pagEstoque = usePaginacao(produtosFiltrados);
+  const pagMovimentacoes = usePaginacao(movimentacoesFiltradas);
 
-  const usuariosDisponiveis = useMemo(() => {
-    return [...new Set(movimentacoes.map((m) => m.usuario))].sort();
-  }, []);
+  // Reseta páginas ao filtrar
+  useMemo(() => pagEstoque.resetar(), [produtosFiltrados]);
+  useMemo(() => pagMovimentacoes.resetar(), [movimentacoesFiltradas]);
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -721,6 +250,8 @@ export default function Estoque() {
           Ajuste
         </button>
       </section>
+
+      {/* ── Tabela: Saldo por Produto ── */}
       <section className={styles.table_container}>
         <div className={styles.table_header}>
           <h2>Saldo Atual por Produto</h2>
@@ -756,6 +287,7 @@ export default function Estoque() {
             </button>
           </div>
         </div>
+
         <table className={styles.table}>
           <thead>
             <tr>
@@ -768,70 +300,74 @@ export default function Estoque() {
               <th className="pseudo-title">Valor Total</th>
             </tr>
           </thead>
-
           <tbody>
-            {produtosFiltrados.map((produto) => {
-              return (
-                <tr key={produto.codigo}>
+            {loadingProdutos ? (
+              <SkeletonTabelaEstoque />
+            ) : (
+              pagEstoque.itensPagina.map((produto) => (
+                <tr key={produto.id}>
                   <td>
                     <div className={styles.img}>
                       <Package />
                     </div>
                   </td>
-                  <td>{produto.codigo}</td>
-                  <td>{produto.nome}</td>
-                  <td>{produto.estoqueAtual} un</td>
-                  <td>{produto.estoqueMinimo} un</td>
+                  <td>{produto.id}</td>
+                  <td>{produto.txDescricao}</td>
+                  <td>{produto.nrEstoqueatual} un</td>
+                  <td>{produto.nrEstoqueminimo} un</td>
                   <td>
-                    <span className={styles[getStatus(produto)]}></span>
+                    <span className={styles[getStatus(produto)]} />
                   </td>
                   <td>
-                    {(
-                      produto.estoqueAtual * produto.custoUnitario
-                    ).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {formatarMoeda(
+                      produto.nrEstoqueatual * produto.nrPrecocusto,
+                    )}
                   </td>
                 </tr>
-              );
-            })}
+              ))
+            )}
           </tbody>
         </table>
+
+        {!loadingProdutos && (
+          <Paginacao
+            paginaAtual={pagEstoque.paginaAtual}
+            totalPaginas={pagEstoque.totalPaginas}
+            total={produtosFiltrados.length}
+            irPara={pagEstoque.irPara}
+          />
+        )}
       </section>
+
+      {/* ── Modal: Ajuste de Estoque ── */}
       <dialog ref={dialogRef} className={styles.modal}>
         <div className={styles.modal_header}>
           <h2>Ajuste de Estoque</h2>
-          <X
-            size={20}
-            className={styles.btn_close}
-            onClick={() => {
-              reset();
-              dialogRef.current?.close();
-            }}
-          />
+          <X size={20} className={styles.btn_close} onClick={fecharModal} />
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className={styles.modal_form}>
+
+        <form
+          onSubmit={() => handleSubmit(onSubmit)}
+          className={styles.modal_form}
+        >
           <label>
             Produto
             <select
-              {...register('produto', {
-                required: 'Selecione um produto',
-              })}
+              {...register('produto', { required: 'Selecione um produto' })}
               defaultValue=""
             >
               <option value="" disabled>
                 Selecione um produto...
               </option>
-
-              {produtos.map((produto) => (
-                <option key={produto.id} value={produto.id}>
-                  {produto.codigo} - {produto.nome} (Estoque:{' '}
-                  {produto.estoqueAtual} un)
+              {produtos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.id} — {p.txDescricao} (Estoque: {p.nrEstoqueatual} un)
                 </option>
               ))}
             </select>
+            {errors.produto && <span>{errors.produto.message}</span>}
           </label>
+
           <div className={styles.horizontal}>
             <label>
               Quantidade
@@ -843,9 +379,7 @@ export default function Estoque() {
                   valueAsNumber: true,
                 })}
               />
-              <span>
-                Use valores positivos para adicionar ou negativos para remover
-              </span>
+              <span>Use positivo para adicionar ou negativo para remover</span>
               {errors.quantidade && <span>{errors.quantidade.message}</span>}
             </label>
 
@@ -853,9 +387,7 @@ export default function Estoque() {
               Data
               <input
                 type="date"
-                {...register('data', {
-                  required: 'Informe a data',
-                })}
+                {...register('data', { required: 'Informe a data' })}
               />
               {errors.data && <span>{errors.data.message}</span>}
             </label>
@@ -866,9 +398,7 @@ export default function Estoque() {
             <input
               type="text"
               placeholder="Ex: Compra, Transferência..."
-              {...register('origem', {
-                required: 'Informe a origem',
-              })}
+              {...register('origem', { required: 'Informe a origem' })}
             />
             {errors.origem && <span>{errors.origem.message}</span>}
           </label>
@@ -892,20 +422,15 @@ export default function Estoque() {
           </label>
 
           <div className={styles.modal_footer}>
-            <button
-              type="button"
-              onClick={() => {
-                reset();
-                dialogRef.current?.close();
-              }}
-            >
+            <button type="button" onClick={fecharModal}>
               Cancelar
             </button>
-
             <button type="submit">Registrar Ajuste</button>
           </div>
         </form>
       </dialog>
+
+      {/* ── Tabela: Histórico de Movimentações ── */}
       <section className={styles.table_container}>
         <div className={styles.table_header}>
           <h2>Histórico de Movimentações</h2>
@@ -915,7 +440,6 @@ export default function Estoque() {
                 value={dataFiltro}
                 onChange={(e) => {
                   setDataFiltro(e.target.value);
-
                   if (e.target.value) {
                     setDataInicio('');
                     setDataFim('');
@@ -923,10 +447,9 @@ export default function Estoque() {
                 }}
               >
                 <option value="">Todas as datas</option>
-
-                {datasDisponiveis.map((data) => (
-                  <option key={data} value={data}>
-                    {data.split('-').reverse().join('/')}
+                {datasDisponiveis.map((d) => (
+                  <option key={d} value={d}>
+                    {d.split('-').reverse().join('/')}
                   </option>
                 ))}
               </select>
@@ -960,41 +483,22 @@ export default function Estoque() {
                 onChange={(e) => setOrigemFiltro(e.target.value)}
               >
                 <option value="">Todas as origens</option>
-
-                {origensDisponiveis.map((origem) => (
-                  <option key={origem} value={origem}>
-                    {origem}
+                {origensDisponiveis.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
                   </option>
                 ))}
               </select>
             </label>
 
-            <label>
-              <select
-                value={usuarioFiltro}
-                onChange={(e) => setUsuarioFiltro(e.target.value)}
-              >
-                <option value="">Todos os usuários</option>
-
-                {usuariosDisponiveis.map((usuario) => (
-                  <option key={usuario} value={usuario}>
-                    {usuario}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label>
               <select
                 value={tipoFiltro}
                 onChange={(e) => setTipoFiltro(e.target.value)}
               >
                 <option value="">Todos os tipos</option>
-
-                {tiposDisponiveis.map((tipo) => (
-                  <option key={tipo} value={tipo}>
-                    {tipo === 'entrada' ? 'Entrada' : 'Saída'}
-                  </option>
-                ))}
+                <option value="entrada">Entrada</option>
+                <option value="saida">Saída</option>
               </select>
             </label>
 
@@ -1005,7 +509,6 @@ export default function Estoque() {
                 setDataInicio('');
                 setDataFim('');
                 setOrigemFiltro('');
-                setUsuarioFiltro('');
                 setTipoFiltro('');
               }}
             >
@@ -1013,6 +516,7 @@ export default function Estoque() {
             </button>
           </div>
         </div>
+
         <table className={styles.table}>
           <thead>
             <tr>
@@ -1024,41 +528,48 @@ export default function Estoque() {
               <th className="pseudo-title">Usuário</th>
             </tr>
           </thead>
-
           <tbody>
-            {movimentacoesFiltradas.map((movimentacao) => {
-              return (
-                <tr className={styles.text_only} key={movimentacao.id}>
-                  <td>
-                    {movimentacao.data.split('-').reverse().join('/')}{' '}
-                    {movimentacao.hora}
-                  </td>
-                  <td>
-                    {produtos.find(
-                      (produto) => produto.id === movimentacao.produtoId,
-                    )?.nome ?? movimentacao.produtoId}
-                  </td>
-                  <td>
-                    <span
-                      className={
-                        movimentacao.tipo == 'entrada'
-                          ? styles.entrada
-                          : styles.saida
-                      }
-                    ></span>
-                  </td>
-                  <td>
-                    {movimentacao.tipo === 'entrada'
-                      ? `+ ${movimentacao.quantidade}`
-                      : `- ${movimentacao.quantidade}`}
-                  </td>
-                  <td>{movimentacao.origem}</td>
-                  <td>{movimentacao.usuario}</td>
-                </tr>
-              );
-            })}
+            {loadingMovimentacoes ? (
+              <SkeletonTabelaMovimentacoes />
+            ) : (
+              pagMovimentacoes.itensPagina.map((m) => {
+                const produto = produtos.find((p) => p.id === m.produtoId);
+                return (
+                  <tr className={styles.text_only} key={m.id}>
+                    <td>
+                      {formatarData(m.dtMovimentacao)}{' '}
+                      {formatarHora(m.dtMovimentacao)}
+                    </td>
+                    <td>{produto?.txDescricao ?? `Produto #${m.produtoId}`}</td>
+                    <td>
+                      <span
+                        className={
+                          m.txTipo === 'entrada' ? styles.entrada : styles.saida
+                        }
+                      />
+                    </td>
+                    <td>
+                      {m.txTipo === 'entrada'
+                        ? `+ ${m.nrQuantidade}`
+                        : `- ${m.nrQuantidade}`}
+                    </td>
+                    <td>{m.txOrigem}</td>
+                    <td>{m.txUsuario}</td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
+
+        {!loadingMovimentacoes && (
+          <Paginacao
+            paginaAtual={pagMovimentacoes.paginaAtual}
+            totalPaginas={pagMovimentacoes.totalPaginas}
+            total={movimentacoesFiltradas.length}
+            irPara={pagMovimentacoes.irPara}
+          />
+        )}
       </section>
     </>
   );

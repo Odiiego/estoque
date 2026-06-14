@@ -5,12 +5,8 @@
   margin-bottom: 2rem;
 
   & > div {
-    h1 {
-      font-size: 2.5rem;
-    }
-    p {
-      font-size: 1.2rem;
-    }
+    h1 { font-size: 2.5rem; }
+    p  { font-size: 1.2rem; }
   }
 
   button {
@@ -24,11 +20,9 @@
     cursor: pointer;
     font-size: 1.3rem;
     font-weight: bold;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
     background: linear-gradient(135deg, #4a2c6e 0%, #7c3aed 100%);
     box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
       transform: translateY(-1px);
@@ -45,9 +39,7 @@
   border: 1px solid var(--color-table-border);
   font-size: 1.2rem;
 
-  &:not(:first-child) {
-    margin-top: 2rem;
-  }
+  &:not(:first-child) { margin-top: 2rem; }
 
   .table_header {
     display: flex;
@@ -55,6 +47,11 @@
     flex-wrap: wrap;
     align-items: center;
     padding: 1.5rem;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
 
     .filter_container,
     .filter_container_multiplerows {
@@ -75,12 +72,10 @@
         cursor: pointer;
         font-size: 1.1rem;
         font-weight: bold;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease;
         background-color: #4a2c6e;
         height: 2.25rem;
         box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
           transform: translateY(-1px);
@@ -89,21 +84,11 @@
       }
     }
 
-    .filter_container button {
-      grid-column: 2;
-    }
+    .filter_container button { grid-column: 2; }
 
     .filter_container_multiplerows {
       grid-template-columns: 2fr 1fr 1fr;
-
-      button {
-        grid-column: 3;
-      }
-    }
-
-    h2 {
-      font-size: 1.5rem;
-      margin-bottom: 0.75rem;
+      button { grid-column: 3; }
     }
   }
 }
@@ -112,7 +97,6 @@
   border-collapse: collapse;
   width: 100%;
   background: white;
-  border-radius: 1rem;
 
   th {
     text-align: center;
@@ -123,16 +107,12 @@
   }
 
   tbody {
-    .text_only td {
-      padding: 0.75rem;
-    }
+    .text_only td { padding: 0.75rem; }
 
     tr {
       transition: background 0.2s;
 
-      &:hover {
-        background: #fafafa;
-      }
+      &:hover { background: #fafafa; }
 
       td {
         padding: 0.25rem;
@@ -160,6 +140,29 @@
   padding: 1.5rem !important;
 }
 
+// ── Skeleton ────────────────────────────────────────────────────────────────
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%skeleton-base {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 0.4rem;
+}
+
+.skeleton_text {
+  @extend %skeleton-base;
+  height: 1rem;
+  width: 70%;
+  margin: 0.4rem auto;
+}
+
+// ── Modal ───────────────────────────────────────────────────────────────────
+
 .modal {
   position: fixed;
   overflow: hidden;
@@ -168,9 +171,7 @@
   border: 1px solid var(--color-table-border);
   width: min(600px, 90vw);
 
-  &:not([open]) {
-    display: none;
-  }
+  &:not([open]) { display: none; }
 
   &[open] {
     align-self: center;
@@ -190,17 +191,13 @@
     border-bottom: 1px solid var(--color-table-border);
     padding: 1.5rem;
 
-    h2 {
-      font-size: 1.2rem;
-    }
+    h2 { font-size: 1.2rem; }
 
     .btn_close {
       cursor: pointer;
       color: var(--color-btn-primary);
 
-      &:hover {
-        color: var(--color-btn-primary-light);
-      }
+      &:hover { color: var(--color-btn-primary-light); }
     }
   }
 
@@ -234,9 +231,7 @@
       cursor: pointer;
       font-weight: bold;
       box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
-      transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       background-color: #dcfce7;
       color: #166534;
 
@@ -252,6 +247,8 @@
     }
   }
 }
+
+// ── Itens do formulário ──────────────────────────────────────────────────────
 
 .itens_header {
   display: flex;
@@ -280,9 +277,7 @@
   background-color: #ede9fe;
   transition: background 0.15s;
 
-  &:hover {
-    background-color: #ddd6fe;
-  }
+  &:hover { background-color: #ddd6fe; }
 }
 
 .itens_lista {
@@ -316,18 +311,11 @@
     border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
 
-    &::placeholder {
-      color: var(--color-placeholder);
-    }
+    &::placeholder { color: var(--color-placeholder); }
   }
 
-  select {
-    min-width: 0;
-  }
-
-  input {
-    text-align: center;
-  }
+  select { min-width: 0; }
+  input  { text-align: center; }
 }
 
 .item_subtotal {
@@ -343,9 +331,7 @@
   color: #dc2626;
   flex-shrink: 0;
 
-  &:hover {
-    color: #991b1b;
-  }
+  &:hover { color: #991b1b; }
 }
 
 .itens_total {
@@ -355,16 +341,17 @@
   padding-top: 0.25rem;
   border-top: 1px solid var(--color-table-border);
 
-  strong {
-    color: #4a2c6e;
-  }
+  strong { color: #4a2c6e; }
 }
+
+// ── Badges ──────────────────────────────────────────────────────────────────
 
 .realizado,
 .processando,
 .automatico,
 .manual,
 .ruptura {
+  display: inline-block;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   font-size: 1rem;
@@ -374,34 +361,26 @@
 .realizado {
   background-color: #dcfce7;
   color: #166534;
-  &::before {
-    content: 'Realizado';
-  }
+  &::before { content: 'Realizado'; }
 }
 
 .processando {
   background-color: #fef9c3;
   color: #854d0e;
   animation: piscar 1.5s infinite alternate;
-  &::before {
-    content: 'Processando';
-  }
+  &::before { content: 'Processando'; }
 }
 
 .automatico {
   background-color: #e0e7ff;
   color: #3730a3;
-  &::before {
-    content: 'Automático';
-  }
+  &::before { content: 'Automático'; }
 }
 
 .manual {
   background-color: #f3e8ff;
   color: #6b21a8;
-  &::before {
-    content: 'Manual';
-  }
+  &::before { content: 'Manual'; }
 }
 
 .ruptura {
@@ -410,10 +389,6 @@
 }
 
 @keyframes piscar {
-  from {
-    opacity: 0.55;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0.55; }
+  to   { opacity: 1; }
 }

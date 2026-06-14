@@ -5,12 +5,8 @@
   margin-bottom: 2rem;
 
   & > div {
-    h1 {
-      font-size: 2.5rem;
-    }
-    p {
-      font-size: 1.2rem;
-    }
+    h1 { font-size: 2.5rem; }
+    p  { font-size: 1.2rem; }
   }
 
   button {
@@ -24,22 +20,18 @@
     cursor: pointer;
     font-size: 1.3rem;
     font-weight: bold;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
     background: linear-gradient(135deg, #4a2c6e 0%, #7c3aed 100%);
     box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
       transform: translateY(-1px);
-
       box-shadow: 0 4px 12px rgba(74, 44, 110, 0.4);
     }
   }
 }
 
 .table_container {
-  width: fit-content;
   border-radius: 1rem;
   background: white;
   width: 100%;
@@ -47,9 +39,7 @@
   border: 1px solid var(--color-table-border);
   font-size: 1.2rem;
 
-  &:not(:first-child) {
-    margin-top: 2rem;
-  }
+  &:not(:first-child) { margin-top: 2rem; }
 
   .table_header {
     display: flex;
@@ -57,6 +47,11 @@
     flex-wrap: wrap;
     align-items: center;
     padding: 1.5rem;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
 
     .filter_container,
     .filter_container_multiplerows {
@@ -77,12 +72,10 @@
         cursor: pointer;
         font-size: 1.1rem;
         font-weight: bold;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease;
         background-color: #4a2c6e;
         height: 2.25rem;
         box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
           transform: translateY(-1px);
@@ -91,25 +84,11 @@
       }
     }
 
-    .filter_container {
-      button {
-        grid-column: 2;
-      }
-    }
-
-    .filter_container_multiplerows {
-      button {
-        grid-column: 3;
-      }
-    }
+    .filter_container button { grid-column: 2; }
 
     .filter_container_multiplerows {
       grid-template-columns: 2fr 1fr 1fr;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-      margin-bottom: 0.75rem;
+      button { grid-column: 3; }
     }
   }
 }
@@ -118,34 +97,25 @@
   border-collapse: collapse;
   width: 100%;
   background: white;
-  border-radius: 1rem;
 
   th {
-    text-align: left;
+    text-align: center;
     padding: 1rem;
     background: var(--color-light);
     border-top: 1px solid var(--color-table-border);
     border-bottom: 1px solid var(--color-table-border);
-    text-align: center;
   }
 
   tbody {
-    .text_only {
-      td {
-        padding: 0.75rem;
-      }
-    }
+    .text_only td { padding: 0.75rem; }
 
     tr {
       transition: background 0.2s;
 
-      &:hover {
-        background: #fafafa;
-      }
+      &:hover { background: #fafafa; }
 
       td {
         padding: 0.25rem;
-        min-height: 100px;
         border-top: 1px solid #ececec;
         text-align: center;
 
@@ -165,6 +135,35 @@
   }
 }
 
+// ── Skeleton ────────────────────────────────────────────────────────────────
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%skeleton-base {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 0.4rem;
+}
+
+.skeleton {
+  @extend %skeleton-base;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.skeleton_text {
+  @extend %skeleton-base;
+  height: 1rem;
+  width: 70%;
+  margin: 0.4rem auto;
+}
+
+// ── Modal ───────────────────────────────────────────────────────────────────
+
 .modal {
   position: fixed;
   overflow: hidden;
@@ -172,9 +171,7 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--color-table-border);
 
-  &:not([open]) {
-    display: none;
-  }
+  &:not([open]) { display: none; }
 
   &[open] {
     align-self: center;
@@ -194,17 +191,13 @@
     border-bottom: 1px solid var(--color-table-border);
     padding: 1.5rem;
 
-    h2 {
-      font-size: 1.2rem;
-    }
+    h2 { font-size: 1.2rem; }
 
     .btn_close {
       cursor: pointer;
       color: var(--color-btn-primary);
 
-      &:hover {
-        color: var(--color-btn-primary-light);
-      }
+      &:hover { color: var(--color-btn-primary-light); }
     }
   }
 
@@ -214,19 +207,16 @@
     & > .horizontal {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr;
       gap: 1rem;
     }
 
     & > label:not(:first-child),
-    .horizontal {
-      margin-top: 0.75rem;
-    }
+    .horizontal { margin-top: 0.75rem; }
   }
 
   .modal_footer {
     display: flex;
-    justify-content: right;
+    justify-content: flex-end;
     align-items: center;
     padding: 1.5rem 0;
     gap: 1rem;
@@ -236,17 +226,14 @@
       text-transform: uppercase;
       align-items: center;
       padding: 0.5rem 1rem;
-      color: white;
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
       font-weight: bold;
+      box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       background-color: #dcfce7;
       color: #166534;
-      box-shadow: 0 2px 8px rgba(74, 44, 110, 0.3);
-      transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
 
       &:first-child {
         background-color: #eee;
@@ -261,12 +248,15 @@
   }
 }
 
+// ── Badges ──────────────────────────────────────────────────────────────────
+
 .normal,
 .atencao,
 .ruptura,
 .baixo,
 .entrada,
 .saida {
+  display: inline-block;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   font-size: 1rem;
@@ -277,24 +267,14 @@
 .entrada {
   background-color: #dcfce7;
   color: #166534;
-  &::before {
-    content: 'Normal';
-  }
 }
-.normal::before {
-  content: 'Normal';
-}
-
-.entrada::before {
-  content: 'Entrada';
-}
+.normal::before  { content: 'Normal'; }
+.entrada::before { content: 'Entrada'; }
 
 .atencao {
   background-color: #ffedd5;
   color: #9a3412;
-  &::before {
-    content: 'Atenção';
-  }
+  &::before { content: 'Atenção'; }
 }
 
 .ruptura,
@@ -302,19 +282,11 @@
   background-color: #fee2e2;
   color: #991b1b;
 }
-
-.ruptura::before {
-  content: 'Ruptura';
-}
-
-.saida::before {
-  content: 'Saída';
-}
+.ruptura::before { content: 'Ruptura'; }
+.saida::before   { content: 'Saída'; }
 
 .baixo {
   background-color: #fef9c3;
   color: #854d0e;
-  &::before {
-    content: 'Baixo';
-  }
+  &::before { content: 'Baixo'; }
 }
